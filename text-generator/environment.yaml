@@ -1,0 +1,12 @@
+name: neuro
+channels:
+  - conda-forge
+  - nvidia
+  - pytorch
+dependencies:
+  - pip
+  - pytorch=1.13
+  - torchvision
+  - torchaudio
+  - pytorch-cuda=11.7
+  - python=3.9
