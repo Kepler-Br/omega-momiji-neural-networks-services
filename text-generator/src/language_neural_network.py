@@ -3,8 +3,10 @@ from typing import Optional
 import torch
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
+from language_neural_network_abstract import LanguageNeuralNetworkAbstract
 
-class LanguageNeuralNetwork:
+
+class LanguageNeuralNetwork(LanguageNeuralNetworkAbstract):
     def __init__(self, path: str, use_cpu: bool = False):
         self.use_cpu = use_cpu
         self.tokenizer = GPT2Tokenizer.from_pretrained(path)

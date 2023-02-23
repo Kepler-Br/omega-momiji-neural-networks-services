@@ -1,5 +1,10 @@
 FROM ubuntu:22.04
 
+# Create non root user
+RUN groupadd --gid 1000 user && \
+    useradd --uid 1000 --gid 1000 -m user && \
+    usermod --shell /bin/bash user
+
 # Install conda
 
 RUN apt-get update && \

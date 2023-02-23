@@ -13,8 +13,6 @@ SHELL ["conda", "run", "-n", "neuro", "--no-capture-output", "/bin/bash", "-c"]
 RUN echo "conda activate neuro" >> /home/user/.bashrc && \
     echo "conda activate neuro" >> /root/.bashrc
 
-COPY requirements.txt .
-
-RUN pip install --no-cache -r requirements.txt
-
 COPY src/ .
+
+USER user

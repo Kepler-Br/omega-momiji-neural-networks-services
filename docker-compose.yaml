@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  text-generator:
+    image: momiji-text-generator
+    environment:
+      SERVER_MODEL_PATH: model
+      SERVER_USE_STUB: True
+      SERVER_USE_CPU: True
+    command: conda run -n neuro --no-capture-output uvicorn main:app
+    ports:
+      - '8080:8080'
