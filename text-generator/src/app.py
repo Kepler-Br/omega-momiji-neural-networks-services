@@ -1,8 +1,8 @@
 import logging
 import os
-from dataclasses import dataclass
 
 from fastapi import FastAPI
+from pydantic import BaseModel, Field
 
 from controller import Controller
 from language_neural_network import LanguageNeuralNetwork
@@ -10,15 +10,11 @@ from language_neural_network_abstract import LanguageNeuralNetworkAbstract
 from language_neural_network_stub import LanguageNeuralNetworkStub
 
 
-@dataclass
-class ProgramArguments:
-    model: str
-    use_stub: bool
-    use_cpu: bool
-    port: int
-    host: str
-    workers: int
-    log_level: str
+class ProgramArguments(BaseModel):
+    model: str = Field(min_length=1)
+    use_stub: bool = Field(False)
+    use_cpu: bool = Field(False)
+    log_level: str = Field('INFO', min_length=1)
 
 
 def parse_arguments() -> ProgramArguments:
@@ -26,9 +22,6 @@ def parse_arguments() -> ProgramArguments:
         model=os.environ.get('SERVER_MODEL_PATH'),
         use_stub=os.environ.get('SERVER_USE_STUB', 'FALSE') in {'TRUE', 'true', '1', 'True'},
         use_cpu=os.environ.get('SERVER_USE_CPU', 'FALSE') in {'TRUE', 'true', '1', 'True'},
-        port=int(os.environ.get('SERVER_PORT', '8080')),
-        host=os.environ.get('SERVER_HOST', '0.0.0.0'),
-        workers=int(os.environ.get('SERVER_WORKERS', '2')),
         log_level=os.environ.get('SERVER_LOG_LEVEL', 'INFO'),
     )
 
