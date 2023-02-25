@@ -4,13 +4,12 @@ channels:
   - nvidia
   - pytorch
 dependencies:
+  - python=3.10
   - pip
+  - pytorch-cuda=11.7
   - pytorch=1.13
   - torchvision
   - torchaudio
-#  - pytorch-cuda=11.7
-  - python=3.9
   - pip:
-    - transformers==4.26.1
     - fastapi==0.92.0
     - uvicorn==0.20.0

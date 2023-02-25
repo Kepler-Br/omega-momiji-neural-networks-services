@@ -1,15 +1,8 @@
-from language_neural_network_abstract import LanguageNeuralNetworkAbstract
+from abc import ABC, abstractmethod
 
 
-class LanguageNeuralNetworkStub(LanguageNeuralNetworkAbstract):
-    def __init__(self, path: str, use_cpu: bool = False):
-        # Stub
-        pass
-
-    def seed(self, seed: int):
-        # Stub
-        pass
-
+class LanguageNeuralNetworkAbstract(ABC):
+    @abstractmethod
     def generate(
             self,
             prompt: str,
@@ -24,4 +17,4 @@ class LanguageNeuralNetworkStub(LanguageNeuralNetworkAbstract):
             top_p: float = 0.95,
             temperature: float = 1.0,
             bad_words: list[str] = None) -> list[str]:
-        return ['some generated text']
+        raise NotImplementedError('generate is not implemented')

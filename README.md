@@ -1,19 +1,25 @@
+## Note
+### **I will fully document this after I finish the whole project**
+### **Information below may be outdated**
+
+---
+
 ### Text generator
 
 #### How to run
 
 ```shell
-uvicorn app:app --host='0.0.0.0' --port='8080' --workers=2
+uvicorn app:app --host='0.0.0.0' --port='8080' --workers=1
 ```
 
 #### A list of environment variables used by program
 
-| Key               | Required | Type    | Possible values                               | Default |
-|-------------------|----------|---------|-----------------------------------------------|---------|
-| SERVER_MODEL_PATH | Yes      | String  | File system or hugging face path              |         |
-| SERVER_USE_STUB   | No       | Boolean | TRUE, true, 1, True, **Any string as False**  | False   |
-| SERVER_USE_CPU    | No       | Boolean | TRUE, true, 1, True, **Any string as False**  | False   |
-| SERVER_LOG_LEVEL  | No       | String  | NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL | INFO    |
+| Key                       | Required | Type    | Possible values                               | Default |
+|---------------------------|----------|---------|-----------------------------------------------|---------|
+| SERVER_MODEL_NAME_OR_PATH | Yes      | String  | File system or hugging face path              |         |
+| SERVER_USE_STUB           | No       | Boolean | TRUE, true, 1, True, **Any string as False**  | False   |
+| SERVER_USE_CPU            | No       | Boolean | TRUE, true, 1, True, **Any string as False**  | False   |
+| SERVER_LOG_LEVEL          | No       | String  | NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL | INFO    |
 
 #### A list of environment variables used by run.py
 
@@ -21,7 +27,7 @@ uvicorn app:app --host='0.0.0.0' --port='8080' --workers=2
 |----------------|----------|---------|---------------------|---------|
 | SERVER_PORT    | No       | Integer | A valid port number | 8080    |
 | SERVER_HOST    | No       | String  | A valid IP address  | 0.0.0.0 |
-| SERVER_WORKERS | No       | Integer | 1>                  | 2       |
+| SERVER_WORKERS | No       | Integer | 1>                  | 1       |
 
 #### Request
 

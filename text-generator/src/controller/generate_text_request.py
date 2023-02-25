@@ -14,7 +14,3 @@ class GenerateTextRequest(BaseModel):
     early_stopping: bool = Field(True)
     seed: int = Field(42)
     bad_words: list[str] = Field(None)
-
-
-class GeneratedResponse(BaseModel):
-    text: list[str]
