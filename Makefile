@@ -8,9 +8,11 @@ build:
 	# Services
 	docker build text-generator 	-f ./text-generator/Dockerfile		--network host -t momiji-text-generator
 	docker build speech-recognition -f ./speech-recognition/Dockerfile	--network host -t momiji-speech-recognition
+	docker build image-caption		-f ./image-caption/Dockerfile		--network host -t momiji-image-caption
 
 clean:
-	@docker image rm momiji-conda      			2> /dev/null || true
-	@docker image rm momiji-pytorch      		2> /dev/null || true
-	@docker image rm momiji-text-generator      2> /dev/null || true
-	@docker image rm momiji-speech-recognition  2> /dev/null || true
+	@docker image rm momiji-conda				2> /dev/null || true
+	@docker image rm momiji-pytorch				2> /dev/null || true
+	@docker image rm momiji-text-generator		2> /dev/null || true
+	@docker image rm momiji-speech-recognition	2> /dev/null || true
+	@docker image rm momiji-image-caption		2> /dev/null || true
