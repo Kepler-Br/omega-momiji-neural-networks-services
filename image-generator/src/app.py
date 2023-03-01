@@ -6,8 +6,8 @@ from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
 from controller.controller import Controller
-from network.image_captioning_abstract import ImageCaptioningAbstract
-from network.image_captioning_stub import ImageCaptioningStub
+from network.image_generator_abstract import ImageGeneratorAbstract
+from network.image_generator_stub import ImageGeneratorStub
 
 
 class ProgramArguments(BaseModel):
@@ -50,9 +50,9 @@ log = logging.getLogger(f'{__name__}.main')
 
 # Loading stuff
 log.info('Loading model')
-neural_network: ImageCaptioningAbstract
+neural_network: ImageGeneratorAbstract
 if arguments.use_stub:
-    neural_network = ImageCaptioningStub()
+    neural_network = ImageGeneratorStub()
 else:
     raise NotImplementedError('Non stub version is not implemented yet')
 

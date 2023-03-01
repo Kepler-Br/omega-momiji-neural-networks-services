@@ -1,3 +1,4 @@
+import inspect
 from abc import ABC, abstractmethod
 from typing import Tuple, Optional
 
@@ -14,4 +15,4 @@ class SpeechRecognitionAbstract(ABC):
             patience: Optional[float] = None,
             best_of: Optional[int] = None,
     ) -> Transcribed:
-        raise NotImplementedError(f'transcribe is not implemented')
+        raise NotImplementedError(f'{inspect.stack()[0][3]} is not implemented')

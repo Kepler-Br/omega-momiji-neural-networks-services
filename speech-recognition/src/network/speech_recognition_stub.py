@@ -1,5 +1,4 @@
 import logging
-from abc import abstractmethod
 from typing import Tuple, Optional
 
 from network.speech_recognition_abstract import SpeechRecognitionAbstract

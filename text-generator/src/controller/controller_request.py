@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 
 
-class GenerateTextRequest(BaseModel):
+class ControllerRequest(BaseModel):
     prompt: str = Field(min_length=1)
     temperature: float = Field(1.0, ge=0.0)
     repetition_penalty: float = Field(None, ge=1.0)

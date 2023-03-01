@@ -1,3 +1,4 @@
+import inspect
 from abc import ABC, abstractmethod
 
 
@@ -17,4 +18,4 @@ class LanguageNeuralNetworkAbstract(ABC):
             top_p: float = 0.95,
             temperature: float = 1.0,
             bad_words: list[str] = None) -> list[str]:
-        raise NotImplementedError('generate is not implemented')
+        raise NotImplementedError(f'{inspect.stack()[0][3]} is not implemented')

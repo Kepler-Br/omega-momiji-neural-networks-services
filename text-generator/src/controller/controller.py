@@ -1,33 +1,38 @@
 import logging
-import threading
-from concurrent.futures import ThreadPoolExecutor, Future
 from uuid import UUID
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse, Response
 from starlette import status
 
-from controller.generate_text_request import GenerateTextRequest
-from controller.generated_response import GeneratedResponse
+from base_task_controller import BaseTaskController
+from controller_request import ControllerRequest
+from controller_response import ControllerResponse
 from network.language_neural_network_abstract import LanguageNeuralNetworkAbstract
 
 
-class Controller:
-    def __init__(self, network: LanguageNeuralNetworkAbstract):
-        self.log = logging.getLogger(f'{__name__}.{self.__class__.__name__}')
+class Controller(BaseTaskController):
+    def __init__(
+            self,
+            network: LanguageNeuralNetworkAbstract,
+            max_cached_results: float,
+            cached_result_ttl: float,
+    ):
+        super().__init__(
+            task_executor=self._generate,
+            logger=logging.getLogger(f'{__name__}.{self.__class__.__name__}'),
+            max_cached_results=max_cached_results,
+            cached_results_ttl=cached_result_ttl,
+        )
 
         self._network = network
-        self._network_lock = threading.RLock()
-        self._tasks_lock = threading.RLock()
-        self._executor = ThreadPoolExecutor(max_workers=1)
-        self._tasks: dict[UUID, Future[GeneratedResponse]] = dict()
 
         self.router = APIRouter()
 
-        self.router.add_api_route('/generated-text/{task_key}', self.request_generation, methods=['POST'])
-        self.router.add_api_route('/generated-text/{task_key}', self.get_generation, methods=['GET'])
+        self.router.add_api_route('/generated-text/{task_key}', self.request_task_execution, methods=['PUT'])
+        self.router.add_api_route('/generated-text/{task_key}', self.get_result, methods=['GET'])
 
-    def _generate(self, body: GenerateTextRequest) -> GeneratedResponse:
+    def _generate(self, body: ControllerRequest) -> ControllerResponse:
         try:
             with self._network_lock:
                 result = self._network.generate(
@@ -45,14 +50,14 @@ class Controller:
                     repetition_penalty=body.repetition_penalty,
                 )
 
-                return GeneratedResponse(
+                return ControllerResponse(
                     text=result,
                 )
         except RuntimeError as e:
             self.log.error(f'Error generating text:')
             self.log.error(e, exc_info=True)
 
-            return GeneratedResponse(
+            return ControllerResponse(
                 error_message=f'{e.__class__.__name__}: {e}',
             )
 
@@ -73,10 +78,8 @@ class Controller:
             content=result.dict(exclude_none=True)
         )
 
-    def request_generation(self, body: GenerateTextRequest, task_key: UUID) -> Response:
-        if task_key not in self._tasks:
-            self._tasks[task_key] = self._executor.submit(self._generate, body)
+    def get_result(self, task_key: UUID) -> Response:
+        return self._get_result(task_key=task_key)
 
-        return Response(
-            status_code=status.HTTP_201_CREATED
-        )
+    def request_task_execution(self, body: ControllerRequest, task_key: UUID) -> Response:
+        return self._request_task_execution(body=body, task_key=task_key)

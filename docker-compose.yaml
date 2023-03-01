@@ -6,20 +6,29 @@ services:
     environment:
       SERVER_MODEL_NAME_OR_PATH: model
       SERVER_USE_STUB: True
-      SERVER_USE_CPU: True
-    command: conda run -n neuro --no-capture-output uvicorn app:app --host='0.0.0.0' --port='8080' --workers=1 --log-config=logging.yaml
     ports:
       - '8080:8080'
 
   speech-recognition:
     image: momiji-speech-recognition
     environment:
-      SERVER_MODEL_NAME_OR_PATH: base
-#      SERVER_MODEL_SAVE_DIR: /content/models
+      SERVER_MODEL_NAME_OR_PATH: model
       SERVER_USE_STUB: True
-      SERVER_USE_CPU: True
-    command: conda run -n neuro --no-capture-output uvicorn app:app --host='0.0.0.0' --port='8080' --workers=1 --log-config=logging.yaml
-    volumes:
-      - './models:/content/models'
     ports:
       - '8081:8080'
+
+  image-caption:
+    image: momiji-image-caption
+    environment:
+      SERVER_MODEL_NAME_OR_PATH: model
+      SERVER_USE_STUB: True
+    ports:
+      - '8082:8080'
+
+  image-generator:
+    image: momiji-image-generator
+    environment:
+      SERVER_MODEL_NAME_OR_PATH: model
+      SERVER_USE_STUB: True
+    ports:
+      - '8083:8080'

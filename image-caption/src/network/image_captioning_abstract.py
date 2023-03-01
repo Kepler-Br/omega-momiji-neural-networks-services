@@ -1,3 +1,4 @@
+import inspect
 from abc import ABC, abstractmethod
 
 from network.captioned import Captioned
@@ -9,4 +10,4 @@ class ImageCaptioningAbstract(ABC):
             self,
             image_bytes: bytes,
     ) -> Captioned:
-        raise NotImplementedError(f'caption is not implemented')
+        raise NotImplementedError(f'{inspect.stack()[0][3]} is not implemented')
