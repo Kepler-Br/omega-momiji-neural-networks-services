@@ -5,10 +5,10 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse, Response
 from starlette import status
 
-from base_task_controller import BaseTaskController
-from controller_request import ControllerRequest
-from controller_response import ControllerResponse
 from network.language_neural_network_abstract import LanguageNeuralNetworkAbstract
+from .base_task_controller import BaseTaskController
+from .model.history_generation_request import ControllerRequest
+from .model.responses import HistoryGenerationResponse
 
 
 class Controller(BaseTaskController):
@@ -29,35 +29,32 @@ class Controller(BaseTaskController):
 
         self.router = APIRouter()
 
-        self.router.add_api_route('/generated-text/{task_key}', self.request_task_execution, methods=['PUT'])
-        self.router.add_api_route('/generated-text/{task_key}', self.get_result, methods=['GET'])
+        self.router.add_api_route('/history-prompts/{task_key}', self.request_task_execution, methods=['PUT'])
+        self.router.add_api_route('/history-prompts/{task_key}', self.get_result, methods=['GET'])
 
-    def _generate(self, body: ControllerRequest) -> ControllerResponse:
+    def _generate(self, body: ControllerRequest) -> HistoryGenerationResponse:
         try:
             with self._network_lock:
-                result = self._network.generate(
+                generation_params = body.generation_params
+
+                result = self._network.generate_messages(
+                    messages=body.history,
+                    generation_params=generation_params,
+                    prompt_author=body.prompt_author,
+                    reply_to_id=body.reply_to_message_id,
                     prompt=body.prompt,
-                    count=body.count,
-                    max_new_tokens=body.max_new_tokens,
-                    num_beams=body.num_beams,
-                    no_repeat_ngram_size=body.no_repeat_ngram_size,
-                    early_stopping=body.early_stopping,
-                    seed=body.seed,
-                    bad_words=body.bad_words,
-                    top_k=body.top_k,
-                    top_p=body.top_p,
-                    temperature=body.temperature,
-                    repetition_penalty=body.repetition_penalty,
                 )
 
                 return ControllerResponse(
-                    text=result,
+                    status=ResponseStatus.OK,
+                    messages=result
                 )
         except RuntimeError as e:
-            self.log.error(f'Error generating text:')
+            self.log.error('Error generating text:')
             self.log.error(e, exc_info=True)
 
             return ControllerResponse(
+                status=ResponseStatus.INTERNAL_SERVER_ERROR,
                 error_message=f'{e.__class__.__name__}: {e}',
             )
 

@@ -6,9 +6,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
 from controller.controller import Controller
-from network.language_neural_network import LanguageNeuralNetwork
 from network.language_neural_network_abstract import LanguageNeuralNetworkAbstract
-from network.language_neural_network_stub import LanguageNeuralNetworkStub
 
 
 class ProgramArguments(BaseModel):
@@ -28,8 +26,8 @@ def parse_arguments() -> ProgramArguments:
         use_stub=os.environ.get('SERVER_USE_STUB', 'FALSE') in {'TRUE', 'true', '1', 'True'},
         use_cpu=os.environ.get('SERVER_USE_CPU', 'FALSE') in {'TRUE', 'true', '1', 'True'},
         log_level=os.environ.get('SERVER_LOG_LEVEL', 'INFO'),
-        max_results_in_cache=int(os.environ.get('SERVER_MAX_RESULTS_IN_CACHE')),
-        result_ttl=float(os.environ.get('SERVER_RESULT_TTL')),
+        max_results_in_cache=int(os.environ.get('SERVER_MAX_RESULTS_IN_CACHE', '100')),
+        result_ttl=float(os.environ.get('SERVER_RESULT_TTL', '1800.0')),
     )
 
 
@@ -52,8 +50,12 @@ log.info('Loading model')
 
 neural_network: LanguageNeuralNetworkAbstract
 if arguments.use_stub:
+    from network.language_neural_network_stub import LanguageNeuralNetworkStub
+
     neural_network = LanguageNeuralNetworkStub(arguments.model, use_cpu=arguments.use_cpu)
 else:
+    from network.language_neural_network import LanguageNeuralNetwork
+
     neural_network = LanguageNeuralNetwork(arguments.model, use_cpu=arguments.use_cpu)
 
 log.info('Done')

@@ -1,6 +1,10 @@
 import logging
+from typing import Optional
 
+from controller.model.history_generation_request import GenerationParams
+from controller.model.message import Message, MessageType
 from network.language_neural_network_abstract import LanguageNeuralNetworkAbstract
+from network.messages_to_prompt import messages_to_prompt
 
 
 class LanguageNeuralNetworkStub(LanguageNeuralNetworkAbstract):
@@ -10,33 +14,72 @@ class LanguageNeuralNetworkStub(LanguageNeuralNetworkAbstract):
     def generate(
             self,
             prompt: str,
+            generation_params: GenerationParams,
             count: int = 1,
-            max_new_tokens: int = 50,
-            num_beams: int = 5,
-            no_repeat_ngram_size: int = 5,
-            repetition_penalty: float = None,
-            early_stopping: bool = True,
-            seed: int = 42,
-            top_k: int = 50,
-            top_p: float = 0.95,
-            temperature: float = 1.0,
-            bad_words: list[str] = None
     ) -> list[str]:
         self.log.debug(
             f'(Stub) Generating text:\n'
             f'Prompt: {prompt}\n'
             f'Count: {count}\n'
-            f'Max new tokens: {max_new_tokens}\n'
-            f'Num beams: {num_beams}\n'
-            f'No repeat ngram size: {no_repeat_ngram_size}\n'
-            f'Repetition penalty: {repetition_penalty}\n'
-            f'Early stopping: {early_stopping}\n'
-            f'Seed: {seed}\n'
-            f'Top k: {top_k}\n'
-            f'Top p: {top_p}\n'
-            f'Temperature: {temperature}\n'
-            f'Bad words: {bad_words}\n'
+            f'Max new tokens: {generation_params.max_new_tokens}\n'
+            f'Num beams: {generation_params.num_beams}\n'
+            f'No repeat ngram size: {generation_params.no_repeat_ngram_size}\n'
+            f'Repetition penalty: {generation_params.repetition_penalty}\n'
+            f'Early stopping: {generation_params.early_stopping}\n'
+            f'Seed: {generation_params.seed}\n'
+            f'Top k: {generation_params.top_k}\n'
+            f'Top p: {generation_params.top_p}\n'
+            f'Temperature: {generation_params.temperature}\n'
+            f'Bad words: {generation_params.bad_words}\n'
         )
         return ['According to all known laws of aviation, there is no way that a bee should be able to fly. '
                 'Its wings are too small to get its fat little body off the ground. '
                 'The bee, of course, flies anyways.']
+
+    def generate_messages(
+            self,
+            messages: list[Message],
+            generation_params: GenerationParams,
+            prompt_author: str,
+            reply_to_id: Optional[int] = None,
+            prompt: Optional[str] = None,
+    ) -> list[Message]:
+        prompt = messages_to_prompt(messages, prompt=prompt, author=prompt_author, reply_to=reply_to_id)
+
+        self.log.debug(
+            f'(Stub) Generating messages:\n'
+            f'Prompt: {prompt}\n'
+            f'Max new tokens: {generation_params.max_new_tokens}\n'
+            f'Num beams: {generation_params.num_beams}\n'
+            f'No repeat ngram size: {generation_params.no_repeat_ngram_size}\n'
+            f'Repetition penalty: {generation_params.repetition_penalty}\n'
+            f'Early stopping: {generation_params.early_stopping}\n'
+            f'Seed: {generation_params.seed}\n'
+            f'Top k: {generation_params.top_k}\n'
+            f'Top p: {generation_params.top_p}\n'
+            f'Temperature: {generation_params.temperature}\n'
+            f'Bad words: {generation_params.bad_words}\n'
+        )
+
+        last_message_id = messages[-1].message_id
+
+        return [
+            Message(
+                message_type=MessageType.TEXT,
+                content='According to all known laws of aviation, there is no way that a bee should be able to fly',
+                author=prompt_author,
+                message_id=last_message_id + 1,
+            ),
+            Message(
+                message_type=MessageType.TEXT,
+                content='Its wings are too small to get its fat little body off the ground',
+                author=prompt_author,
+                message_id=last_message_id + 2,
+            ),
+            Message(
+                message_type=MessageType.TEXT,
+                content='The bee, of course, flies anyways',
+                author=f'{prompt_author} Stub',
+                message_id=last_message_id + 3,
+            ),
+        ]

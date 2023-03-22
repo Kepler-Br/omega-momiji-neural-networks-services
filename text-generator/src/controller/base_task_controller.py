@@ -6,6 +6,8 @@ from cachetools import TTLCache
 from fastapi.responses import JSONResponse, Response
 from starlette import status
 
+from .model.responses import BasicResponse, ResponseStatus
+
 
 class BaseTaskController:
     def __init__(
@@ -60,5 +62,6 @@ class BaseTaskController:
             self.log.info(f'Task already exists: {task_key}')
 
         return Response(
-            status_code=status.HTTP_202_ACCEPTED
+            status_code=status.HTTP_202_ACCEPTED,
+            content=BasicResponse(status=ResponseStatus.OK).dict(exclude_none=True)
         )

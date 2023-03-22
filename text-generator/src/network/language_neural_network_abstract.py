@@ -1,5 +1,9 @@
 import inspect
 from abc import ABC, abstractmethod
+from typing import Optional
+
+from controller.model.history_generation_request import GenerationParams
+from controller.model.message import Message
 
 
 class LanguageNeuralNetworkAbstract(ABC):
@@ -7,15 +11,18 @@ class LanguageNeuralNetworkAbstract(ABC):
     def generate(
             self,
             prompt: str,
+            generation_params: GenerationParams,
             count: int = 1,
-            max_new_tokens: int = 50,
-            num_beams: int = 5,
-            no_repeat_ngram_size: int = 5,
-            repetition_penalty: float = None,
-            early_stopping: bool = True,
-            seed: int = 42,
-            top_k: int = 50,
-            top_p: float = 0.95,
-            temperature: float = 1.0,
-            bad_words: list[str] = None) -> list[str]:
+    ) -> list[str]:
+        raise NotImplementedError(f'{inspect.stack()[0][3]} is not implemented')
+
+    @abstractmethod
+    def generate_messages(
+            self,
+            messages: list[Message],
+            generation_params: GenerationParams,
+            prompt_author: str,
+            reply_to_id: Optional[int] = None,
+            prompt: Optional[str] = None,
+    ) -> list[Message]:
         raise NotImplementedError(f'{inspect.stack()[0][3]} is not implemented')

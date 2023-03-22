@@ -1,10 +1,16 @@
 import logging
+import time
 from typing import Optional
 
 import torch
+from controller.model.history_generation_request import GenerationParams
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
+from controller.model.message import Message
+from message_tokenizer.to_message import map_tokens_to_messages
+from message_tokenizer.tokenizer import TextToTokenSeqParser
 from network.language_neural_network_abstract import LanguageNeuralNetworkAbstract
+from network.messages_to_prompt import messages_to_prompt
 
 
 class LanguageNeuralNetwork(LanguageNeuralNetworkAbstract):
@@ -30,42 +36,33 @@ class LanguageNeuralNetwork(LanguageNeuralNetworkAbstract):
     def generate(
             self,
             prompt: str,
+            generation_params: GenerationParams,
             count: int = 1,
-            max_new_tokens: int = 50,
-            num_beams: int = 5,
-            no_repeat_ngram_size: int = 5,
-            repetition_penalty: float = None,
-            early_stopping: bool = True,
-            seed: int = 42,
-            top_k: int = 50,
-            top_p: float = 0.95,
-            temperature: float = 1.0,
-            bad_words: list[str] = None
     ) -> list[str]:
         self.log.debug(
             f'Generating text:\n'
             f'Prompt: {prompt}\n'
             f'Count: {count}\n'
-            f'Max new tokens: {max_new_tokens}\n'
-            f'Num beams: {num_beams}\n'
-            f'No repeat ngram size: {no_repeat_ngram_size}\n'
-            f'Repetition penalty: {repetition_penalty}\n'
-            f'Early stopping: {early_stopping}\n'
-            f'Seed: {seed}\n'
-            f'Top k: {top_k}\n'
-            f'Top p: {top_p}\n'
-            f'Temperature: {temperature}\n'
-            f'Bad words: {bad_words}\n'
+            f'Max new tokens: {generation_params.max_new_tokens}\n'
+            f'Num beams: {generation_params.num_beams}\n'
+            f'No repeat ngram size: {generation_params.no_repeat_ngram_size}\n'
+            f'Repetition penalty: {generation_params.repetition_penalty}\n'
+            f'Early stopping: {generation_params.early_stopping}\n'
+            f'Seed: {generation_params.seed}\n'
+            f'Top k: {generation_params.top_k}\n'
+            f'Top p: {generation_params.top_p}\n'
+            f'Temperature: {generation_params.temperature}\n'
+            f'Bad words: {generation_params.bad_words}\n'
         )
 
-        self._seed(seed)
+        self._seed(generation_params.seed)
 
         encoded_bad_words: Optional[list[list[int]]] = None
 
-        if bad_words is not None and len(bad_words) != 0:
+        if generation_params.bad_words is not None and len(generation_params.bad_words) != 0:
             encoded_bad_words = []
 
-            for word in bad_words:
+            for word in generation_params.bad_words:
                 encoded_bad_words.append(self.tokenizer.encode(word.strip()))
 
         tokenized = self.tokenizer(prompt, return_tensors="pt")
@@ -81,15 +78,15 @@ class LanguageNeuralNetwork(LanguageNeuralNetworkAbstract):
             tokenized_input_ids,
             do_sample=True,
             attention_mask=attention_mask,
-            max_new_tokens=max_new_tokens,
-            num_beams=num_beams,
-            no_repeat_ngram_size=no_repeat_ngram_size,
-            early_stopping=early_stopping,
+            max_new_tokens=generation_params.max_new_tokens,
+            num_beams=generation_params.num_beams,
+            no_repeat_ngram_size=generation_params.no_repeat_ngram_size,
+            early_stopping=generation_params.early_stopping,
             num_return_sequences=count,
-            top_k=top_k,
-            top_p=top_p,
-            temperature=temperature,
-            repetition_penalty=repetition_penalty,
+            top_k=generation_params.top_k,
+            top_p=generation_params.top_p,
+            temperature=generation_params.temperature,
+            repetition_penalty=generation_params.repetition_penalty,
             bad_words_ids=encoded_bad_words
         )
 
@@ -111,3 +108,18 @@ class LanguageNeuralNetwork(LanguageNeuralNetworkAbstract):
         )
 
         return ret
+
+    def generate_messages(
+            self,
+            messages: list[Message],
+            generation_params: GenerationParams,
+            prompt_author: str,
+            reply_to_id: Optional[int] = None,
+            prompt: Optional[str] = None,
+    ) -> list[Message]:
+        prompt = messages_to_prompt(messages, prompt=prompt, author=prompt_author, reply_to=reply_to_id)
+        generated = self.generate(prompt=prompt, generation_params=generation_params, count=1)[0]
+
+        tokens = TextToTokenSeqParser().parse(generated)
+
+        return map_tokens_to_messages(tokens)
