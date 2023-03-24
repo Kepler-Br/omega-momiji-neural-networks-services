@@ -1,5 +1,5 @@
 import inspect
-from typing import Iterable
+from typing import Iterable, Optional
 
 from controller.model.message import Message, MessageType
 from message_tokenizer.tokenizer import data_to_tokenized_text
@@ -18,7 +18,7 @@ def _map_message_to_text(value: Message) -> str:
     raise RuntimeError(f'{inspect.stack()[0][3]}: unmapped message type enum: {value.message_type}')
 
 
-def messages_to_prompt(messages: Iterable[Message], prompt: str, author: str, reply_to: int) -> str:
+def messages_to_prompt(messages: Iterable[Message], prompt: str, author: str, reply_to: Optional[str]) -> str:
     message_prompt_list: list[str] = []
     last_message_id = 1
 
@@ -35,7 +35,7 @@ def messages_to_prompt(messages: Iterable[Message], prompt: str, author: str, re
 
     message_prompt_list.append(
         data_to_tokenized_text(
-            message_id=last_message_id + 1,
+            message_id=last_message_id,
             text=prompt,
             author=author,
             reply_to_message=reply_to,

@@ -8,7 +8,7 @@ from starlette import status
 from network.language_neural_network_abstract import LanguageNeuralNetworkAbstract
 from .base_task_controller import BaseTaskController
 from .model.history_generation_request import ControllerRequest
-from .model.responses import HistoryGenerationResponse
+from .model.responses import HistoryGenerationResponse, ResponseStatus
 
 
 class Controller(BaseTaskController):
@@ -45,7 +45,7 @@ class Controller(BaseTaskController):
                     prompt=body.prompt,
                 )
 
-                return ControllerResponse(
+                return HistoryGenerationResponse(
                     status=ResponseStatus.OK,
                     messages=result
                 )
@@ -53,7 +53,7 @@ class Controller(BaseTaskController):
             self.log.error('Error generating text:')
             self.log.error(e, exc_info=True)
 
-            return ControllerResponse(
+            return HistoryGenerationResponse(
                 status=ResponseStatus.INTERNAL_SERVER_ERROR,
                 error_message=f'{e.__class__.__name__}: {e}',
             )

@@ -6,10 +6,10 @@ from .tokens import Token, MessageIdToken, FromToken, ReplyToToken, MessageBodyT
 
 
 def data_to_tokenized_text(
-        message_id: int,
+        message_id: str,
         author: str,
         text: Optional[str] = None,
-        reply_to_message: Optional[int] = None
+        reply_to_message: Optional[str] = None
 ) -> str:
     tokens: list[Token] = [MessageIdToken(message_id), FromToken(author)]
 

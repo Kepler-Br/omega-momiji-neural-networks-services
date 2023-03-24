@@ -28,7 +28,7 @@ class MessageIdParseState(ParseState):
         return MessageIdToken.line_match.match(line) is not None
 
     def dump(self) -> Token:
-        ret = MessageIdToken(val=int(self.val))
+        ret = MessageIdToken(val=self.val)
         self.val = ''
 
         return ret
@@ -62,7 +62,7 @@ class ReplyToParseState(ParseState):
         return ReplyToToken.line_match.match(line) is not None
 
     def dump(self) -> Token:
-        ret = ReplyToToken(val=int(self.val))
+        ret = ReplyToToken(val=self.val)
         self.val = ''
 
         return ret

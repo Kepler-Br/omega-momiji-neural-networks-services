@@ -68,18 +68,18 @@ class LanguageNeuralNetworkStub(LanguageNeuralNetworkAbstract):
                 message_type=MessageType.TEXT,
                 content='According to all known laws of aviation, there is no way that a bee should be able to fly',
                 author=prompt_author,
-                message_id=last_message_id + 1,
+                message_id=last_message_id + '1',
             ),
             Message(
                 message_type=MessageType.TEXT,
                 content='Its wings are too small to get its fat little body off the ground',
                 author=prompt_author,
-                message_id=last_message_id + 2,
+                message_id=last_message_id + '2',
             ),
             Message(
                 message_type=MessageType.TEXT,
                 content='The bee, of course, flies anyways',
                 author=f'{prompt_author} Stub',
-                message_id=last_message_id + 3,
+                message_id=last_message_id + '3',
             ),
         ]

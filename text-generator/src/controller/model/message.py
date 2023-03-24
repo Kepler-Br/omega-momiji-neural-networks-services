@@ -14,6 +14,6 @@ class Message(BaseModel):
     message_type: str = Field()
     content: str = Field()
     author: str = Field()
-    message_id: int = Field()
-    reply_to_message_id: Optional[int] = Field(None)
+    message_id: str = Field()
+    reply_to_message_id: Optional[str] = Field(None)
     emoji: Optional[str] = Field(None)

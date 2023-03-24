@@ -23,5 +23,5 @@ class ControllerRequest(BaseModel):
     message_type: str = Field()
     prompt: Optional[str] = Field(None)
     prompt_author: str = Field()
-    reply_to_message_id: Optional[int] = Field(None)
+    reply_to_message_id: Optional[str] = Field(None)
     history: list[Message] = Field()

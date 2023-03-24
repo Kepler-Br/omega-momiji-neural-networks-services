@@ -8,20 +8,20 @@ class InvalidTokenSeq(RuntimeError):
     pass
 
 
-def _split_tokens_into_batches(tokens: Iterable[Token]) -> list[tuple[Token]]:
-    splitted = []
+def _split_tokens_into_batches(tokens: Iterable[Token]) -> list[tuple[MessageIdToken | Token, ...]]:
+    split = []
 
     accumulated = []
     for p in tokens:
         if isinstance(p, MessageIdToken) and len(accumulated) != 0:
-            splitted.append(tuple(accumulated))
+            split.append(tuple(accumulated))
             accumulated = []
         accumulated.append(p)
 
     if len(accumulated) != 0 and isinstance(accumulated[-1], MessageBodyToken):
-        splitted.append(tuple(accumulated))
+        split.append(tuple(accumulated))
 
-    return splitted
+    return split
 
 
 def _token_batch_to_message(batch: Iterable[Token]) -> Message:

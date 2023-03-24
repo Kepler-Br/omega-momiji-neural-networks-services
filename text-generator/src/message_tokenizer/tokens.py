@@ -12,7 +12,7 @@ class MessageIdToken(Token):
     line_match = re.compile(r'^---- (\d+)$')
     keyword = '----'
 
-    def __init__(self, val: int):
+    def __init__(self, val: str):
         self.val = val
 
     def serialize(self) -> str:
@@ -34,7 +34,7 @@ class ReplyToToken(Token):
     line_match = re.compile(r'^>> (\d+)$')
     keyword = '>>'
 
-    def __init__(self, val: int):
+    def __init__(self, val: str):
         self.val = val
 
     def serialize(self) -> str:
