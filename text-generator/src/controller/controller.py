@@ -2,8 +2,7 @@ import logging
 from uuid import UUID
 
 from fastapi import APIRouter
-from fastapi.responses import JSONResponse, Response
-from starlette import status
+from fastapi.responses import Response
 
 from network.language_neural_network_abstract import LanguageNeuralNetworkAbstract
 from .base_task_controller import BaseTaskController
@@ -57,23 +56,6 @@ class Controller(BaseTaskController):
                 status=ResponseStatus.INTERNAL_SERVER_ERROR,
                 error_message=f'{e.__class__.__name__}: {e}',
             )
-
-    def get_generation(self, task_key: UUID) -> Response:
-        if task_key not in self._tasks:
-            return Response(status_code=status.HTTP_404_NOT_FOUND)
-
-        task = self._tasks[task_key]
-
-        if not task.done():
-            return Response(status_code=status.HTTP_425_TOO_EARLY)
-
-        result = task.result()
-
-        self._tasks.pop(task_key)
-
-        return JSONResponse(
-            content=result.dict(exclude_none=True)
-        )
 
     def get_result(self, task_key: UUID) -> Response:
         return self._get_result(task_key=task_key)

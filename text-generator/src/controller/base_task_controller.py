@@ -54,14 +54,24 @@ class BaseTaskController:
         )
 
     def _request_task_execution(self, body, task_key: UUID) -> Response:
-        if task_key not in self._tasks and task_key not in self._results:
-            self.log.info(f'Submitted task {task_key}')
+        try:
+            if task_key not in self._tasks and task_key not in self._results:
+                self._tasks[task_key] = self._executor.submit(self._task_executor, body)
 
-            self._tasks[task_key] = self._executor.submit(self._task_executor, body)
-        else:
-            self.log.info(f'Task already exists: {task_key}')
+                self.log.info(f'Submitted task {task_key}')
+            else:
+                self.log.info(f'Task already exists: {task_key}')
 
-        return Response(
-            status_code=status.HTTP_202_ACCEPTED,
-            content=BasicResponse(status=ResponseStatus.OK).dict(exclude_none=True)
-        )
+            return JSONResponse(
+                status_code=status.HTTP_202_ACCEPTED,
+                content=BasicResponse(status=ResponseStatus.OK).dict(exclude_none=True)
+            )
+        except RuntimeError as e:
+            self.log.error('An exception has occurred:', e)
+            return JSONResponse(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                content=BasicResponse(
+                    status=ResponseStatus.INTERNAL_SERVER_ERROR,
+                    error_message=f'{e.__class__.__name__}: {e}')
+                .dict(exclude_none=True)
+            )
