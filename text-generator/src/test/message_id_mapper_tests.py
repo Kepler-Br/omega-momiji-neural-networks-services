@@ -22,6 +22,12 @@ class MessageIdMapperTests(unittest.TestCase):
                 message_id='message_id_2',
                 reply_to_message_id='message_id_1',
             ),
+            Message(
+                message_type='TEXT',
+                content='content',
+                author='author2',
+                message_id='message_id_3',
+            ),
         ]
 
     def test_messages_mapped_back(self):
@@ -76,6 +82,10 @@ class MessageIdMapperTests(unittest.TestCase):
         self.assertEqual(
             mapped_messages[1].reply_to_message_id,
             '1',
+        )
+
+        self.assertIsNone(
+            mapped_messages[2].reply_to_message_id
         )
 
 

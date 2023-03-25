@@ -8,7 +8,7 @@ from transformers import GPT2LMHeadModel, GPT2Tokenizer
 from controller.model.history_generation_request import GenerationParams
 from controller.model.message import Message
 from message_tokenizer.to_message import map_tokens_to_messages
-from message_tokenizer.tokenizer import TextToTokenSeqParser
+from message_tokenizer.tokenizer import TextToTokenSeqParser, data_to_tokenized_text
 from network.language_neural_network_abstract import LanguageNeuralNetworkAbstract
 from network.messages_to_prompt import messages_to_prompt
 from util.message_id_mapper import MessageIdMapper
@@ -121,8 +121,16 @@ class LanguageNeuralNetwork(LanguageNeuralNetworkAbstract):
         mapper = MessageIdMapper()
         mapped = mapper.map_and_save_ids(messages)
 
-        prompt = messages_to_prompt(mapped, prompt=prompt, author=prompt_author, reply_to=reply_to_id)
-        generated = self.generate(prompt=prompt, generation_params=generation_params, count=1)[0]
+        converted_messages = messages_to_prompt(mapped)
+        prompt = data_to_tokenized_text(
+            message_id=messages[-1].message_id,
+            text=prompt,
+            author=prompt_author,
+            reply_to_message=reply_to_id,
+        )
+        generation_prompt = f'{converted_messages}\n{prompt}\n'
+        generated = self.generate(prompt=generation_prompt, generation_params=generation_params, count=1)[0]
+        generated = generated.replace(converted_messages, '').strip()
 
         tokens = TextToTokenSeqParser().parse(generated)
 

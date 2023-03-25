@@ -6,7 +6,7 @@ from cachetools import TTLCache
 from fastapi.responses import JSONResponse, Response
 from starlette import status
 
-from .model.responses import BasicResponse, ResponseStatus
+from .model.responses import BasicResponse, ResponseStatus, HistoryGenerationResponse
 
 
 class BaseTaskController:
@@ -25,11 +25,16 @@ class BaseTaskController:
         self._tasks: dict[UUID, Future] = dict()
         self._results = TTLCache(maxsize=max_cached_results, ttl=cached_results_ttl)
 
-    def _get_result(self, task_key: UUID) -> Response:
+    def _get_result(self, task_key: UUID) -> JSONResponse:
         if task_key not in self._tasks and task_key not in self._results:
             self.log.debug(f'Requested not existing task: {task_key}')
 
-            return Response(status_code=status.HTTP_404_NOT_FOUND)
+            return JSONResponse(
+                status_code=status.HTTP_404_NOT_FOUND,
+                content=HistoryGenerationResponse(
+                    status=ResponseStatus.NOT_FOUND,
+                ).dict(exclude_none=True)
+            )
 
         task: Future
 
@@ -41,7 +46,12 @@ class BaseTaskController:
         if not task.done():
             self.log.debug(f'Requested task that is not ready: {task_key}')
 
-            return Response(status_code=status.HTTP_425_TOO_EARLY)
+            return JSONResponse(
+                status_code=status.HTTP_425_TOO_EARLY,
+                content=HistoryGenerationResponse(
+                    status=ResponseStatus.TOO_EARLY,
+                ).dict(exclude_none=True)
+            )
 
         result = task.result()
 
@@ -53,7 +63,7 @@ class BaseTaskController:
             content=result.dict(exclude_none=True)
         )
 
-    def _request_task_execution(self, body, task_key: UUID) -> Response:
+    def _request_task_execution(self, body, task_key: UUID) -> JSONResponse:
         try:
             if task_key not in self._tasks and task_key not in self._results:
                 self._tasks[task_key] = self._executor.submit(self._task_executor, body)
