@@ -1,7 +1,8 @@
 import logging
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Header
 from fastapi.responses import Response
 
 from network.language_neural_network_abstract import LanguageNeuralNetworkAbstract
@@ -28,7 +29,7 @@ class Controller(BaseTaskController):
 
         self.router = APIRouter()
 
-        self.router.add_api_route('/history-prompts/{task_key}', self.request_task_execution, methods=['PUT'])
+        self.router.add_api_route('/history-prompts/', self.request_task_execution, methods=['POST'])
         self.router.add_api_route('/history-prompts/{task_key}', self.get_result, methods=['GET'])
 
     def _generate(self, body: ControllerRequest) -> HistoryGenerationResponse:
@@ -49,16 +50,15 @@ class Controller(BaseTaskController):
                     messages=result
                 )
         except RuntimeError as e:
-            self.log.error('Error generating text:')
-            self.log.error(e, exc_info=True)
+            self.log.error('Error generating text:', e, exc_info=True)
 
             return HistoryGenerationResponse(
                 status=ResponseStatus.INTERNAL_SERVER_ERROR,
                 error_message=f'{e.__class__.__name__}: {e}',
             )
 
-    def get_result(self, task_key: UUID) -> Response:
-        return self._get_result(task_key=task_key)
+    def get_result(self, task_key: UUID, run_async: Annotated[bool | None, Header()]) -> Response:
+        return self._get_result_handling(task_key=task_key, run_async=run_async)
 
-    def request_task_execution(self, body: ControllerRequest, task_key: UUID) -> Response:
-        return self._request_task_execution(body=body, task_key=task_key)
+    def request_task_execution(self, body: ControllerRequest) -> Response:
+        return self._request_task_execution_handling(body=body)
