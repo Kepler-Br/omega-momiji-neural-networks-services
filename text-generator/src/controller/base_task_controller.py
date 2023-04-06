@@ -47,15 +47,13 @@ class BaseTaskController:
             self.log.debug(f'Requested task that is not ready: {task_key}')
 
             return JSONResponse(
-                status_code=status.HTTP_425_TOO_EARLY,
+                status_code=status.HTTP_200_OK,
                 content=HistoryGenerationResponse(
-                    status=ResponseStatus.TOO_EARLY,
+                    status=ResponseStatus.NOT_READY,
                 ).dict(exclude_none=True)
             )
 
         result = task.result()
-
-        self._tasks.pop(task_key)
 
         self.log.debug(f'Task received: {task_key}')
 
@@ -73,14 +71,14 @@ class BaseTaskController:
             status_code=status.HTTP_202_ACCEPTED,
             content=TextScheduledResponse(
                 status=ResponseStatus.OK,
-                task_id=task_id,
+                task_id=str(task_id),
             ).dict(exclude_none=True)
         )
 
     def _get_result_handling(self, task_key: UUID, run_async: bool) -> JSONResponse:
         try:
             return self._get_result(task_key=task_key, run_async=run_async)
-        except RuntimeError as e:
+        except Exception as e:
             self.log.error('An exception has occurred:', e, exc_info=True)
 
             return JSONResponse(
@@ -94,7 +92,7 @@ class BaseTaskController:
     def _request_task_execution_handling(self, body) -> JSONResponse:
         try:
             return self._request_task_execution(body=body)
-        except RuntimeError as e:
+        except Exception as e:
             self.log.error('An exception has occurred:', e, exc_info=True)
 
             return JSONResponse(

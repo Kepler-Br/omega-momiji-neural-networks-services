@@ -2,7 +2,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from controller.model.message import Message
+from controller.model.message import Message, MessageType
 
 
 class GenerationParams(BaseModel):
@@ -17,11 +17,17 @@ class GenerationParams(BaseModel):
     no_repeat_ngram_size: Optional[int] = Field(1, ge=0)
     bad_words: Optional[list[str]] = Field(None)
 
+    class Config:
+        use_enum_values = True
+
 
 class ControllerRequest(BaseModel):
-    generation_params: GenerationParams = Field()
-    message_type: str = Field()
+    generation_params: Optional[GenerationParams] = Field()
+    message_type: Optional[MessageType] = Field()
     prompt: Optional[str] = Field(None)
-    prompt_author: str = Field()
+    prompt_author: Optional[str] = Field()
     reply_to_message_id: Optional[str] = Field(None)
     history: list[Message] = Field()
+
+    class Config:
+        use_enum_values = True

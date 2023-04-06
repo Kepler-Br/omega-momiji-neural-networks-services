@@ -44,11 +44,11 @@ class LanguageNeuralNetworkStub(LanguageNeuralNetworkAbstract):
             reply_to_id: Optional[int] = None,
             prompt: Optional[str] = None,
     ) -> list[Message]:
-        prompt = messages_to_prompt(messages, prompt=prompt, author=prompt_author, reply_to=reply_to_id)
+        messages_as_prompt = messages_to_prompt(messages)
 
         self.log.debug(
             f'(Stub) Generating messages:\n'
-            f'Prompt: {prompt}\n'
+            f'Prompt: {messages_as_prompt}\n'
             f'Max new tokens: {generation_params.max_new_tokens}\n'
             f'Num beams: {generation_params.num_beams}\n'
             f'No repeat ngram size: {generation_params.no_repeat_ngram_size}\n'
