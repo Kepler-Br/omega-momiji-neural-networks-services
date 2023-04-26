@@ -6,7 +6,9 @@ RUN apt-get update && \
 
 SHELL ["conda", "run", "-n", "neuro", "--no-capture-output", "/bin/bash", "-c"]
 
-RUN pip install openai-whisper pyyaml numpy setuptools-rust==1.5.2
+COPY requirements.txt .
+
+RUN pip install -r requirements.txt
 
 WORKDIR /content
 

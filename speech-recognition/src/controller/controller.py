@@ -2,24 +2,24 @@ import base64
 import logging
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Header, Path
 from fastapi.responses import Response
 
-from base_task_controller import BaseTaskController
-from network.speech_recognition_abstract import SpeechRecognitionAbstract
-from speech_recognize_request import SpeechRecognizeRequest
-from speech_recognize_response import SpeechRecognizeResponse
+from network.captioning_neural_network_abstract import CaptioningNeuralNetworkAbstract
+from .base_task_controller import BaseTaskController
+from .model.requests import ControllerRequest
+from .model.responses import CaptionResponse, ResponseStatus
 
 
 class Controller(BaseTaskController):
     def __init__(
             self,
-            network: SpeechRecognitionAbstract,
+            network: CaptioningNeuralNetworkAbstract,
             max_cached_results: float,
             cached_result_ttl: float,
     ):
         super().__init__(
-            task_executor=self._transcribe,
+            task_executor=self._generate,
             logger=logging.getLogger(f'{__name__}.{self.__class__.__name__}'),
             max_cached_results=max_cached_results,
             cached_results_ttl=cached_result_ttl,
@@ -29,36 +29,30 @@ class Controller(BaseTaskController):
 
         self.router = APIRouter()
 
-        self.router.add_api_route('/transcribed-audio/{task_key}', self.request_generation, methods=['PUT'])
-        self.router.add_api_route('/transcribed-audio/{task_key}', self.get_result, methods=['GET'])
+        self.router.add_api_route('/speech-captions', self.request_task_execution, methods=['POST'])
+        self.router.add_api_route('/speech-captions/{task_key}', self.get_result, methods=['GET'])
 
-    def _transcribe(self, body: SpeechRecognizeRequest) -> SpeechRecognizeResponse:
-        audio_bytes = base64.b64decode(body.audio)
-
-        with self._network_lock:
-            try:
-                result = self._network.transcribe(
-                    audio_bytes=audio_bytes,
-                    temperature=body.temperature,
-                    beam_size=body.beam_size,
-                    patience=body.patience,
-                    best_of=body.best_of,
+    def _generate(self, body: ControllerRequest) -> CaptionResponse:
+        try:
+            with self._network_lock:
+                result = self._network.caption(
+                    voice=base64.b64decode(body.data)
                 )
 
-                return SpeechRecognizeResponse(
-                    text=result.text,
-                    language=result.language,
+                return CaptionResponse(
+                    status=ResponseStatus.OK,
+                    caption=result
                 )
-            except RuntimeError as e:
-                self.log.error(f'Error transcribing audio:')
-                self.log.error(e, exc_info=True)
+        except Exception as e:
+            self.log.error('Error generating text:', e, exc_info=True)
 
-                return SpeechRecognizeResponse(
-                    error_message=f'{e.__class__.__name__}: {e}',
-                )
+            return CaptionResponse(
+                status=ResponseStatus.INTERNAL_SERVER_ERROR,
+                error_message=f'{e.__class__.__name__}: {e}',
+            )
 
-    def get_result(self, task_key: UUID) -> Response:
-        return self._get_result(task_key=task_key)
+    def get_result(self, task_key: UUID = Path(), run_async: bool | None = Header(False)) -> Response:
+        return self._get_result_handling(task_key=task_key, run_async=run_async)
 
-    def request_generation(self, body: SpeechRecognizeRequest, task_key: UUID) -> Response:
-        return self._request_task_execution(body=body, task_key=task_key)
+    def request_task_execution(self, body: ControllerRequest) -> Response:
+        return self._request_task_execution_handling(body=body)
