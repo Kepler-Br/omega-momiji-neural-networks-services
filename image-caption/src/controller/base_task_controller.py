@@ -1,10 +1,12 @@
 import threading
 from concurrent.futures import ThreadPoolExecutor, Future
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from cachetools import TTLCache
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import JSONResponse
 from starlette import status
+
+from .model.responses import BaseResponse, ResponseStatus, CaptionResponse, CaptioningScheduledResponse
 
 
 class BaseTaskController:
@@ -23,11 +25,16 @@ class BaseTaskController:
         self._tasks: dict[UUID, Future] = dict()
         self._results = TTLCache(maxsize=max_cached_results, ttl=cached_results_ttl)
 
-    def _get_result(self, task_key: UUID) -> Response:
+    def _get_result(self, task_key: UUID, run_async: bool) -> JSONResponse:
         if task_key not in self._tasks and task_key not in self._results:
             self.log.debug(f'Requested not existing task: {task_key}')
 
-            return Response(status_code=status.HTTP_404_NOT_FOUND)
+            return JSONResponse(
+                status_code=status.HTTP_404_NOT_FOUND,
+                content=CaptionResponse(
+                    status=ResponseStatus.NOT_FOUND,
+                ).dict(exclude_none=True)
+            )
 
         task: Future
 
@@ -36,14 +43,17 @@ class BaseTaskController:
         else:
             task = self._results[task_key]
 
-        if not task.done():
+        if run_async and not task.done():
             self.log.debug(f'Requested task that is not ready: {task_key}')
 
-            return Response(status_code=status.HTTP_425_TOO_EARLY)
+            return JSONResponse(
+                status_code=status.HTTP_200_OK,
+                content=CaptionResponse(
+                    status=ResponseStatus.NOT_READY,
+                ).dict(exclude_none=True)
+            )
 
         result = task.result()
-
-        self._tasks.pop(task_key)
 
         self.log.debug(f'Task received: {task_key}')
 
@@ -51,14 +61,44 @@ class BaseTaskController:
             content=result.dict(exclude_none=True)
         )
 
-    def _request_task_execution(self, body, task_key: UUID) -> Response:
-        if task_key not in self._tasks and task_key not in self._results:
-            self.log.info(f'Submitted task {task_key}')
+    def _request_task_execution(self, body) -> JSONResponse:
+        task_id = uuid4()
+        self._tasks[task_id] = self._executor.submit(self._task_executor, body)
 
-            self._tasks[task_key] = self._executor.submit(self._task_executor, body)
-        else:
-            self.log.info(f'Task already exists: {task_key}')
+        self.log.info(f'Submitted task {task_id}')
 
-        return Response(
-            status_code=status.HTTP_202_ACCEPTED
+        return JSONResponse(
+            status_code=status.HTTP_202_ACCEPTED,
+            content=CaptioningScheduledResponse(
+                status=ResponseStatus.OK,
+                task_id=str(task_id),
+            ).dict(exclude_none=True)
         )
+
+    def _get_result_handling(self, task_key: UUID, run_async: bool) -> JSONResponse:
+        try:
+            return self._get_result(task_key=task_key, run_async=run_async)
+        except Exception as e:
+            self.log.error('An exception has occurred:', e, exc_info=True)
+
+            return JSONResponse(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                content=BaseResponse(
+                    status=ResponseStatus.INTERNAL_SERVER_ERROR,
+                    error_message=f'{e.__class__.__name__}: {e}'
+                ).dict(exclude_none=True)
+            )
+
+    def _request_task_execution_handling(self, body) -> JSONResponse:
+        try:
+            return self._request_task_execution(body=body)
+        except Exception as e:
+            self.log.error('An exception has occurred:', e, exc_info=True)
+
+            return JSONResponse(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                content=BaseResponse(
+                    status=ResponseStatus.INTERNAL_SERVER_ERROR,
+                    error_message=f'{e.__class__.__name__}: {e}'
+                ).dict(exclude_none=True)
+            )

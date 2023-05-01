@@ -1,13 +1,13 @@
 import inspect
 from abc import ABC, abstractmethod
+from typing import Optional
 
-from network.captioned import Captioned
 
-
-class ImageCaptioningAbstract(ABC):
+class CaptioningNeuralNetworkAbstract(ABC):
     @abstractmethod
     def caption(
             self,
-            image_bytes: bytes,
-    ) -> Captioned:
+            image: bytes,
+            condition: Optional[str] = None,
+    ) -> str:
         raise NotImplementedError(f'{inspect.stack()[0][3]} is not implemented')
