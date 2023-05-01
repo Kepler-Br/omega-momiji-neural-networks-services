@@ -9,7 +9,6 @@ arguments = parse_arguments()
 
 log = setup_and_get_logger('logging.yaml', arguments.log_level)
 
-# Loading stuff
 log.info('Loading model')
 
 neural_network = get_neural_network_or_exit_on_error(
@@ -22,8 +21,8 @@ log.info('Done')
 
 controller = Controller(
     network=neural_network,
-    max_cached_results=arguments.max_results_in_cache,
-    cached_result_ttl=arguments.result_ttl,
+    max_cached_results=arguments.max_responses_in_cache,
+    cached_result_ttl=arguments.response_ttl,
     result_cache=get_result_cache(use_cache=arguments.use_result_cache, db_url=arguments.result_cache_db_url)
 )
 

@@ -4,6 +4,7 @@ from typing import Optional
 
 from PIL import Image
 from transformers import Blip2Processor, Blip2ForConditionalGeneration
+
 from network.captioning_neural_network_abstract import CaptioningNeuralNetworkAbstract
 
 
@@ -16,12 +17,13 @@ class Blip2CaptioningNeuralNetwork(CaptioningNeuralNetworkAbstract):
         self.processor = Blip2Processor.from_pretrained(path)
         self.log.info('Loading model')
         self.model = Blip2ForConditionalGeneration.from_pretrained(path)
-        self.log.info('Done')
 
         if self.device_override is not None:
             self.log.info(f'Moving model to device {device_override}')
             self.processor = self.processor.to(device_override)
             self.model = self.model.to(device_override)
+
+        self.log.info('Done')
 
     def caption(
             self,

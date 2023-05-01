@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 import ffmpeg
 import numpy as np
@@ -7,19 +8,21 @@ import whisper
 from network.captioning_neural_network_abstract import CaptioningNeuralNetworkAbstract
 
 
-class CaptioningNeuralNetwork(CaptioningNeuralNetworkAbstract):
-    def __init__(self, path: str, use_cpu: bool = False):
+class WhisperNeuralNetwork(CaptioningNeuralNetworkAbstract):
+    def __init__(self, path: str, device_override: Optional[str] = None):
         self.log = logging.getLogger(f'{__name__}.{self.__class__.__name__}')
 
-        self.use_cpu = use_cpu
-        self.log.debug('Loading model')
+        self.device_override = device_override
 
-        self.model = whisper.load_model(
-            name=path,
-            device='cpu' if self.use_cpu else 'cuda'
-        )
+        self.log.info('Loading model')
 
-        self.log.debug('Done')
+        self.model = whisper.load_model(name=path)
+
+        if self.device_override is not None:
+            self.log.info(f'Moving model to device {device_override}')
+            self.model = self.model.to(device_override)
+
+        self.log.info('Done')
 
     @staticmethod
     def _load_audio(audio_bytes: bytes, sr: int = 16000) -> np.ndarray:
@@ -58,6 +61,15 @@ class CaptioningNeuralNetwork(CaptioningNeuralNetworkAbstract):
             self,
             voice: bytes,
     ) -> str:
+        self.log.info(
+            f'Caption speech:\n'
+            f'Bytes total: {len(voice)}'
+        )
+
         audio = self._load_audio(voice)
 
-        return self.model.transcribe(audio)['text']
+        caption = self.model.transcribe(audio)['text'].strip()
+
+        self.log.info(f'Speech processed. Caption: "{caption}"')
+
+        return caption

@@ -13,8 +13,7 @@ from network.captioning_neural_network_abstract import CaptioningNeuralNetworkAb
 
 class ModelType(str, Enum):
     STUB: str = 'stub'
-    BLIP: str = 'BLIP'
-    BLIP2: str = 'BLIP2'
+    WHISPER: str = 'whisper'
 
 
 class ProgramArguments(BaseModel):
@@ -82,16 +81,11 @@ def get_neural_network_or_exit_on_error(model_type: ModelType, model_path: str,
         from network.captioning_neural_network_stub import CaptioningNeuralNetworkStub
 
         return CaptioningNeuralNetworkStub()
-    elif model_type == ModelType.BLIP:
-        from network.blip_captioning_neural_network import BlipCaptioningNeuralNetwork
+    elif model_type == ModelType.WHISPER:
+        from network.whisper_neural_network import WhisperNeuralNetwork
 
-        return BlipCaptioningNeuralNetwork(path=model_path,
-                                           device_override=device_override)
-    elif model_type == ModelType.BLIP2:
-        from network.blip2_captioning_neural_network import Blip2CaptioningNeuralNetwork
-
-        return Blip2CaptioningNeuralNetwork(path=model_path,
-                                            device_override=device_override)
+        return WhisperNeuralNetwork(path=model_path,
+                                    device_override=device_override)
     else:
         print(f"Unknown model type: {model_type}", file=sys.stderr)
         sys.exit(-1)

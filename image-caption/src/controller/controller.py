@@ -62,7 +62,7 @@ class Controller(BaseTaskController):
                     caption=result
                 )
         except Exception as e:
-            self.log.error('Error generating text:', e, exc_info=True)
+            self.log.error('Error captioning image:', e, exc_info=True)
 
             return CaptionResponse(
                 status=ResponseStatus.INTERNAL_SERVER_ERROR,

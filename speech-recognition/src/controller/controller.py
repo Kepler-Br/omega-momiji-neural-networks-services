@@ -5,6 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter, Header, Path
 from fastapi.responses import Response
 
+from common.result_cache import ResultCacheAbstract
 from network.captioning_neural_network_abstract import CaptioningNeuralNetworkAbstract
 from .base_task_controller import BaseTaskController
 from .model.requests import ControllerRequest
@@ -17,6 +18,7 @@ class Controller(BaseTaskController):
             network: CaptioningNeuralNetworkAbstract,
             max_cached_results: float,
             cached_result_ttl: float,
+            result_cache: ResultCacheAbstract,
     ):
         super().__init__(
             task_executor=self._generate,
@@ -32,19 +34,34 @@ class Controller(BaseTaskController):
         self.router.add_api_route('/speech-captions', self.request_task_execution, methods=['POST'])
         self.router.add_api_route('/speech-captions/{task_key}', self.get_result, methods=['GET'])
 
+        self.result_cache = result_cache
+
     def _generate(self, body: ControllerRequest) -> CaptionResponse:
         try:
+            digest = self.result_cache.calc_digest(body.data)
+            cached = self.result_cache.get(digest)
+
+            if cached is not None:
+                self.log.info(f'Using cached result: "{cached}"')
+
+                return CaptionResponse(
+                    status=ResponseStatus.OK,
+                    caption=cached
+                )
+
             with self._network_lock:
                 result = self._network.caption(
                     voice=base64.b64decode(body.data)
                 )
+
+                self.result_cache.put(digest=digest, result=result)
 
                 return CaptionResponse(
                     status=ResponseStatus.OK,
                     caption=result
                 )
         except Exception as e:
-            self.log.error('Error generating text:', e, exc_info=True)
+            self.log.error('Error captioning speech:', e, exc_info=True)
 
             return CaptionResponse(
                 status=ResponseStatus.INTERNAL_SERVER_ERROR,
