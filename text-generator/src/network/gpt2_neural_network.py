@@ -14,20 +14,21 @@ from network.messages_to_prompt import messages_to_prompt
 from util.message_id_mapper import MessageIdMapper
 
 
-class LanguageNeuralNetwork(LanguageNeuralNetworkAbstract):
-    def __init__(self, path: str, use_cpu: bool = False):
+class GPT2NeuralNetwork(LanguageNeuralNetworkAbstract):
+    def __init__(self, path: str, device_override: Optional[str] = None):
         self.log = logging.getLogger(f'{__name__}.{self.__class__.__name__}')
 
-        self.use_cpu = use_cpu
-        self.log.debug('Loading model')
-        self.log.debug('Loading tokenizer')
+        self.device_override = device_override
+        self.log.info('Loading model')
+        self.log.info('Loading tokenizer')
         self.tokenizer = GPT2Tokenizer.from_pretrained(path)
-        self.log.debug('Loading model')
+        self.log.info('Loading model')
         self.model = GPT2LMHeadModel.from_pretrained(path)
-        self.log.debug('Done')
+        self.log.info('Done')
 
-        if not self.use_cpu:
-            self.model = self.model.to('cuda')
+        if self.device_override is not None:
+            self.log.info(f'Moving model to device {self.device_override}')
+            self.model = self.model.to(self.device_override)
 
     def _seed(self, seed: int):
         self.log.debug(f'Setting seed to {seed}')
@@ -69,9 +70,9 @@ class LanguageNeuralNetwork(LanguageNeuralNetworkAbstract):
         tokenized = self.tokenizer(prompt, return_tensors="pt")
         tokenized_input_ids = tokenized.input_ids
         attention_mask = tokenized.attention_mask
-        if not self.use_cpu:
-            tokenized_input_ids = tokenized_input_ids.to('cuda')
-            attention_mask = attention_mask.to('cuda')
+        if self.device_override is not None:
+            tokenized_input_ids = tokenized_input_ids.to(self.device_override)
+            attention_mask = attention_mask.to(self.device_override)
 
         start_generation = time.time()
 
@@ -100,7 +101,7 @@ class LanguageNeuralNetwork(LanguageNeuralNetworkAbstract):
         del attention_mask
         del tokenized
 
-        if not self.use_cpu:
+        if 'cuda' in self.device_override:
             torch.cuda.empty_cache()
 
         self.log.debug(

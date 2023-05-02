@@ -2,7 +2,7 @@ import logging
 from uuid import UUID
 
 from fastapi import APIRouter, Header, Path
-from fastapi.responses import Response
+from starlette.responses import JSONResponse
 
 from network.language_neural_network_abstract import LanguageNeuralNetworkAbstract
 from .base_task_controller import BaseTaskController
@@ -14,14 +14,14 @@ class Controller(BaseTaskController):
     def __init__(
             self,
             network: LanguageNeuralNetworkAbstract,
-            max_cached_results: float,
-            cached_result_ttl: float,
+            max_cached_responses: float,
+            cached_responses_ttl: float,
     ):
         super().__init__(
             task_executor=self._generate,
             logger=logging.getLogger(f'{__name__}.{self.__class__.__name__}'),
-            max_cached_results=max_cached_results,
-            cached_results_ttl=cached_result_ttl,
+            max_cached_results=max_cached_responses,
+            cached_results_ttl=cached_responses_ttl,
         )
 
         self._network = network
@@ -56,8 +56,8 @@ class Controller(BaseTaskController):
                 error_message=f'{e.__class__.__name__}: {e}',
             )
 
-    def get_result(self, task_key: UUID = Path(), run_async: bool | None = Header(False)) -> Response:
+    def get_result(self, task_key: UUID = Path(), run_async: bool | None = Header(False)) -> JSONResponse:
         return self._get_result_handling(task_key=task_key, run_async=run_async)
 
-    def request_task_execution(self, body: ControllerRequest) -> Response:
+    def request_task_execution(self, body: ControllerRequest) -> JSONResponse:
         return self._request_task_execution_handling(body=body)
