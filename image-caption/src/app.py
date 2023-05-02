@@ -11,11 +11,7 @@ log = setup_and_get_logger('logging.yaml', arguments.log_level)
 
 log.info('Loading model')
 
-neural_network = get_neural_network_or_exit_on_error(
-    model_type=arguments.model_type,
-    model_path=arguments.model_path,
-    device_override=arguments.device_override
-)
+neural_network = get_neural_network_or_exit_on_error(arguments=arguments)
 
 log.info('Done')
 

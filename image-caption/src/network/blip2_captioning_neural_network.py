@@ -7,6 +7,7 @@ from network.captioning_neural_network_abstract import CaptioningNeuralNetworkAb
 from transformers import Blip2Processor, Blip2ForConditionalGeneration
 
 from app_stuff import ModelType
+from network.utils import fill_alpha_with_color
 
 
 class Blip2CaptioningNeuralNetwork(CaptioningNeuralNetworkAbstract):
@@ -36,7 +37,7 @@ class Blip2CaptioningNeuralNetwork(CaptioningNeuralNetworkAbstract):
             f'Bytes total: {len(image)}\n'
             f'Condition: "{condition}"'
         )
-        raw_image = Image.open(BytesIO(image)).convert('RGB')
+        raw_image = fill_alpha_with_color(Image.open(BytesIO(image))).convert('RGB')
 
         inputs = self.processor(raw_image, condition, return_tensors="pt")
 

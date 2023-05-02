@@ -2,3 +2,4 @@
 /models
 /ignore
 *.sqlite3
+*.safetensors

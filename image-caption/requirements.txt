@@ -4,3 +4,4 @@ uvicorn==0.22.0
 cachetools==5.3.0
 pillow==9.5.0
 SQLAlchemy==2.0.12
+clip-interrogator==0.6.0
