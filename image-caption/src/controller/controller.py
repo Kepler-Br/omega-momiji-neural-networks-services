@@ -4,9 +4,9 @@ from uuid import UUID
 
 from fastapi import APIRouter, Header, Path
 from fastapi.responses import Response
+from network.captioning_neural_network_abstract import CaptioningNeuralNetworkAbstract
 
 from common.result_cache import ResultCacheAbstract
-from network.captioning_neural_network_abstract import CaptioningNeuralNetworkAbstract
 from .base_task_controller import BaseTaskController
 from .model.requests import ControllerRequest
 from .model.responses import CaptionResponse, ResponseStatus
@@ -38,7 +38,7 @@ class Controller(BaseTaskController):
 
     def _generate(self, body: ControllerRequest) -> CaptionResponse:
         try:
-            digest = self.result_cache.calc_digest(body.data, body.condition)
+            digest = self.result_cache.calc_digest(body.data, body.condition, self._network.name())
             cached = self.result_cache.get(digest)
 
             if cached is not None:

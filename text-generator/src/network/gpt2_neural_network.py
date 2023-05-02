@@ -5,6 +5,7 @@ from typing import Optional
 import torch
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
+from app_stuff import ModelType
 from controller.model.history_generation_request import GenerationParams
 from controller.model.message import Message
 from message_tokenizer.to_message import map_tokens_to_messages
@@ -136,3 +137,6 @@ class GPT2NeuralNetwork(LanguageNeuralNetworkAbstract):
         tokens = TextToTokenSeqParser().parse(generated)
 
         return mapper.map_to_original_ids(map_tokens_to_messages(tokens))
+
+    def name(self) -> str:
+        return ModelType.GPT2

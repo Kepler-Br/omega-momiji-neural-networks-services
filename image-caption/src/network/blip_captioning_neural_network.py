@@ -7,6 +7,8 @@ from transformers import BlipProcessor, BlipForConditionalGeneration
 
 from network.captioning_neural_network_abstract import CaptioningNeuralNetworkAbstract
 
+from app_stuff import ModelType
+
 
 class BlipCaptioningNeuralNetwork(CaptioningNeuralNetworkAbstract):
     def __init__(self, path: str, device_override: Optional[str] = None):
@@ -44,3 +46,6 @@ class BlipCaptioningNeuralNetwork(CaptioningNeuralNetworkAbstract):
         self.log.info(f'Image processed. Caption: "{processed}"')
 
         return processed
+
+    def name(self) -> str:
+        return ModelType.BLIP

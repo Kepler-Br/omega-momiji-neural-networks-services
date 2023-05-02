@@ -26,3 +26,7 @@ class LanguageNeuralNetworkAbstract(ABC):
             prompt: Optional[str] = None,
     ) -> list[Message]:
         raise NotImplementedError(f'{inspect.stack()[0][3]} is not implemented')
+
+    @abstractmethod
+    def name(self) -> str:
+        raise NotImplementedError(f'{inspect.stack()[0][3]} is not implemented')

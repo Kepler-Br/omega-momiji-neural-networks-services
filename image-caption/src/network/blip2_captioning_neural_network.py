@@ -3,9 +3,10 @@ from io import BytesIO
 from typing import Optional
 
 from PIL import Image
+from network.captioning_neural_network_abstract import CaptioningNeuralNetworkAbstract
 from transformers import Blip2Processor, Blip2ForConditionalGeneration
 
-from network.captioning_neural_network_abstract import CaptioningNeuralNetworkAbstract
+from app_stuff import ModelType
 
 
 class Blip2CaptioningNeuralNetwork(CaptioningNeuralNetworkAbstract):
@@ -45,3 +46,6 @@ class Blip2CaptioningNeuralNetwork(CaptioningNeuralNetworkAbstract):
         self.log.info(f'Image processed. Caption: "{processed}"')
 
         return processed
+
+    def name(self) -> str:
+        return ModelType.BLIP2

@@ -1,6 +1,7 @@
 import logging
 from typing import Optional
 
+from app_stuff import ModelType
 from controller.model.history_generation_request import GenerationParams
 from controller.model.message import Message, MessageType
 from network.language_neural_network_abstract import LanguageNeuralNetworkAbstract
@@ -83,3 +84,6 @@ class LanguageNeuralNetworkStub(LanguageNeuralNetworkAbstract):
                 message_id=last_message_id + '3',
             ),
         ]
+
+    def name(self) -> str:
+        return ModelType.STUB

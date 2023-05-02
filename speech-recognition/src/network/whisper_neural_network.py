@@ -5,6 +5,7 @@ import ffmpeg
 import numpy as np
 import whisper
 
+from app_stuff import ModelType
 from network.captioning_neural_network_abstract import CaptioningNeuralNetworkAbstract
 
 
@@ -73,3 +74,6 @@ class WhisperNeuralNetwork(CaptioningNeuralNetworkAbstract):
         self.log.info(f'Speech processed. Caption: "{caption}"')
 
         return caption
+
+    def name(self) -> str:
+        return ModelType.WHISPER

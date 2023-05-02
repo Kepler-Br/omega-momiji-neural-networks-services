@@ -38,7 +38,7 @@ class Controller(BaseTaskController):
 
     def _generate(self, body: ControllerRequest) -> CaptionResponse:
         try:
-            digest = self.result_cache.calc_digest(body.data)
+            digest = self.result_cache.calc_digest(body.data, self._network.name())
             cached = self.result_cache.get(digest)
 
             if cached is not None:
