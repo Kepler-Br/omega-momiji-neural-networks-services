@@ -19,7 +19,6 @@ class GPT2NeuralNetwork(LanguageNeuralNetworkAbstract):
         self.log = logging.getLogger(f'{__name__}.{self.__class__.__name__}')
 
         self.device_override = device_override
-        self.log.info('Loading model')
         self.log.info('Loading tokenizer')
         self.tokenizer = GPT2Tokenizer.from_pretrained(path)
         self.log.info('Loading model')
@@ -29,6 +28,7 @@ class GPT2NeuralNetwork(LanguageNeuralNetworkAbstract):
         if self.device_override is not None:
             self.log.info(f'Moving model to device {self.device_override}')
             self.model = self.model.to(self.device_override)
+            self.log.info('Done')
 
     def _seed(self, seed: int):
         self.log.debug(f'Setting seed to {seed}')
@@ -101,7 +101,7 @@ class GPT2NeuralNetwork(LanguageNeuralNetworkAbstract):
         del attention_mask
         del tokenized
 
-        if 'cuda' in self.device_override:
+        if self.device_override is not None and 'cuda' in self.device_override:
             torch.cuda.empty_cache()
 
         self.log.debug(
@@ -124,7 +124,7 @@ class GPT2NeuralNetwork(LanguageNeuralNetworkAbstract):
 
         converted_messages = messages_to_prompt(mapped)
         prompt = data_to_tokenized_text(
-            message_id=messages[-1].message_id,
+            message_id=str(int(mapped[-1].message_id) + 1),
             text=prompt,
             author=prompt_author,
             reply_to_message=reply_to_id,
