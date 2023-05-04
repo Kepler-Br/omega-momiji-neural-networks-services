@@ -17,7 +17,7 @@ class CaptioningNeuralNetworkStub(CaptioningNeuralNetworkAbstract):
     ) -> str:
         self.log.info(
             f'(Stub) Caption image:\n'
-            f'Bytes total: {len(image)}'
+            f'Bytes total: {len(image)}\n'
             f'Condition: "{condition}"'
         )
 

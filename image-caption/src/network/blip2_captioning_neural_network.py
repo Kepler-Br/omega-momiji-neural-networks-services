@@ -22,7 +22,6 @@ class Blip2CaptioningNeuralNetwork(CaptioningNeuralNetworkAbstract):
 
         if self.device_override is not None:
             self.log.info(f'Moving model to device {device_override}')
-            self.processor = self.processor.to(device_override)
             self.model = self.model.to(device_override)
 
         self.log.info('Done')
@@ -39,7 +38,7 @@ class Blip2CaptioningNeuralNetwork(CaptioningNeuralNetworkAbstract):
         )
         raw_image = fill_alpha_with_color(Image.open(BytesIO(image))).convert('RGB')
 
-        inputs = self.processor(raw_image, condition, return_tensors="pt")
+        inputs = self.processor(raw_image, condition, return_tensors="pt").to(self.device_override)
 
         out = self.model.generate(**inputs, max_new_tokens=500)
         processed = self.processor.decode(out[0], skip_special_tokens=True).strip()

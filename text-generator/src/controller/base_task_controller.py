@@ -57,6 +57,8 @@ class BaseTaskController:
 
         self.log.debug(f'Task received: {task_key}')
 
+        self._tasks.pop(task_key)
+
         return JSONResponse(
             content=result.dict(exclude_none=True)
         )
