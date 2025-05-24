@@ -1,0 +1,26 @@
+version: 1
+disable_existing_loggers: False
+
+formatters:
+  simple:
+    format: '%(asctime)s %(levelname)8s %(thread)15d --- [%(threadName)15s] %(name)-30s : %(message)s'
+#        format: "%(asctime)s [%(levelname)s] %(message)s"
+#        datefmt: '%m/%d/%Y %I:%M:%S %p'
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: simple
+    stream: ext://sys.stdout
+
+  file:
+    class: logging.FileHandler
+    filename: app.log
+    mode: 'w'
+    level: INFO
+    formatter: simple
+
+root:
+  level: DEBUG
+  handlers: [ console,file ]

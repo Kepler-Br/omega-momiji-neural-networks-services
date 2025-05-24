@@ -1,0 +1,5 @@
+neural-network:
+  backend: http://localhost:5001
+  temperature: 1.0
+  prompt-template: MistralV3
+  context: 4096
