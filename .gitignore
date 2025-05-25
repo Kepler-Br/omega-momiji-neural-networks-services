@@ -3,3 +3,4 @@
 /ignore
 *.sqlite3
 *.safetensors
+*.log
