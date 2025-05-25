@@ -1,0 +1,153 @@
+openapi: 3.0.3
+info:
+  title: Omega Momiji messenger gateway
+  description: |-
+    A gateway that connects backend logic with various frontends.
+  version: 1.0.0
+servers:
+  - url: /
+tags:
+  - name: Generate
+    description: Everything about receiving a message
+paths:
+  /v1/completions:
+    post:
+      tags:
+        - Generate
+      summary: Generate text with a specified prompt
+      description: >-
+        Generates text given a prompt and generation settings.
+      operationId: generateText
+      requestBody:
+        description: Message content
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TextGenerationRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextGenerationResponse'
+        '400':
+          description: Client did wrong
+        '500':
+          description: Server did wrong. You're on your own now
+  /v1/chat/completions:
+    post:
+      tags:
+        - Generate
+      summary: Generate text with a specified prompt
+      description: >-
+        Generates text given a prompt and generation settings.
+      operationId: generateChat
+      requestBody:
+        description: Message content
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatGenerationRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatGenerationResponse'
+        '400':
+          description: Client did wrong
+        '500':
+          description: Server did wrong. You're on your own now
+components:
+  schemas:
+    # region /v1/completions
+    TextGenerationRequest:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          description: Message text
+          example: Hello world!
+        max_length:
+          type: integer
+          description: Number of tokens to generate.
+          minimum: 1
+          example: 100
+    TextGenerationResponse:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          description: Message text
+          example: Hello world!
+        finish_reason:
+          type: string
+          description: Why generation has stopped
+          example: length
+    # endregion
+    # region /v1/chat/completions
+    ChatGenerationRequest:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            type: object
+            required:
+              - id
+            properties:
+              id:
+                type: string
+                description: Message ID
+                example: 1
+              username:
+                type: string
+                example: Henry
+              text:
+                type: string
+                description: Message text
+                example: Hello world!
+              media_type:
+                type: string
+                description: Media type
+                example: IMAGE
+                enum:
+                  - PHOTO
+                  - VOICE
+              media_caption:
+                type: string
+                description: Media caption
+                example: A photo containing an apple
+        prompt:
+          type: string
+          description: What should be put before AI response. A user prompt
+          example: You're an assistant. Do your stuff
+        pre_prompt:
+          type: string
+          description: What should be put as the first text in the AI response
+          example: Sure,
+        max_length:
+          type: integer
+          example: 500
+    ChatGenerationResponse:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          description: Message text
+          example: Hello world!
+        reply_to:
+          type: string
+          description: Reply to message ID
+          example: "1"
+    # endregion
