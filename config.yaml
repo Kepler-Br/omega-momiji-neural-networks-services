@@ -1,6 +1,10 @@
 neural-network:
   backend: http://localhost:5001
-  temperature: 0.7
   prompt-template: MistralV3
-  context: 4096
   mock: false
+  parameters:
+    context: 4096
+    temperature: 0.7
+    repetition_penalty: 1.07
+    top_p: 0.92
+    top_k: 100

@@ -1,7 +1,8 @@
+import logging
 import re
 from typing import List
 
-from config import NeuralNetworkConfig
+from config import NeuralNetworkConfig, NeuralNetworkParametersConfig
 from dto import GenerateTextRequest, GenerateTextResponse, GenerateMessageRequest, GenerateMessageResponse, \
     GeneratedMessages
 from kobold import KoboldClient
@@ -13,7 +14,7 @@ Let's roleplay a bit
 
 {}
 
-We're chatting in a chat room with several other people. Only answer with what Mila would write. The message format as follows:
+We're chatting in a chat room with several other people. Only answer with what Momiji would write. The message format as follows:
 The ID is inside '[]', the ID the message is reply to is inside '{{}}', the username is inside '<>', the message body is after ':'
 So, the message with ID of '444' that is a reply to a message with ID of '443', username 'SOMEUSER' and message body 'Hello world' would look like this:
 [444] {{443}} <SOMEUSER>: Hello world
@@ -32,18 +33,20 @@ class GenerationService:
     def __init__(
             self,
             kobold_client: KoboldClient,
-            neural_network_config: NeuralNetworkConfig,
+            neural_network_config: NeuralNetworkParametersConfig,
             text_prompt_wrapper: TextPromptWrapper
     ):
         self._kobold_client = kobold_client
-        self._neural_network_config = neural_network_config
+        self._neural_network_config: NeuralNetworkParametersConfig = neural_network_config
         self._text_prompt_wrapper = text_prompt_wrapper
         self._message_regex = re.compile(r'\[(\d+)] (\{(\d*)})? ?<(.*)>:(.*)')
+        self._log = logging.getLogger(f'{__name__}.{self.__class__.__name__}')
+        self._character_name = 'Momiji'
 
     def _parse_llm_message(self, text: str) -> List[GeneratedMessages]:
         accumulated_text: str = ""
-        reply_to: str = None
-        username: str = None
+        reply_to: str
+        username: str
         messages: List[GeneratedMessages] = []
 
         for line in text.splitlines():
@@ -58,6 +61,8 @@ class GenerationService:
                     )
                 reply_to = matched.group(3)
                 username = matched.group(4)
+                if username != self._character_name:
+                    self._log.error(f'Expected {self._character_name} character got {username}')
                 accumulated_text = matched.group(5)
                 pass
             else:
@@ -79,7 +84,10 @@ class GenerationService:
             max_context_length=self._neural_network_config.context,
             max_length=request.max_length,
             stop_sequence=self._text_prompt_wrapper.get_stop_sequence(),
-            temperature=self._neural_network_config.temperature
+            temperature=self._neural_network_config.temperature,
+            repetition_penalty=self._neural_network_config.repetition_penalty,
+            top_p=self._neural_network_config.top_p,
+            top_k=self._neural_network_config.top_k
         )
 
         return GenerateTextResponse(
@@ -99,12 +107,13 @@ class GenerationService:
             max_context_length=self._neural_network_config.context,
             max_length=request.max_length,
             stop_sequence=self._text_prompt_wrapper.get_stop_sequence(),
-            temperature=self._neural_network_config.temperature
+            temperature=self._neural_network_config.temperature,
+            repetition_penalty=self._neural_network_config.repetition_penalty,
+            top_p=self._neural_network_config.top_p,
+            top_k=self._neural_network_config.top_k
         )
 
-        print(generation_output.results[0].text)
-
-        print("\n")
+        self._log.debug(f"Generated text {generation_output.results[0].text}")
 
         return GenerateMessageResponse(
             messages=self._parse_llm_message(generation_output.results[0].text)

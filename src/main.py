@@ -45,9 +45,17 @@ match config.neural_network.prompt_template:
 
 generation_service = GenerationService(
     kobold_client=kobold_client,
-    neural_network_config=config.neural_network,
+    neural_network_config=config.neural_network.parameters,
     text_prompt_wrapper=text_prompt_wrapper
 )
 controller = Controller(generation_service)
 
 app.include_router(controller.router)
+
+@app.on_event("startup")
+async def startup_event():
+    pass
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    pass

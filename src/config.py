@@ -8,16 +8,24 @@ import logging.config
 
 from tools import get_dict_key_by_path
 
+
 class PromptTemplateType(str, Enum):
     MISTRAL_V3 = 'MistralV3'
 
 
+class NeuralNetworkParametersConfig(BaseModel):
+    temperature: float = Field(ge=0.1)
+    repetition_penalty: float = Field(ge=1.0)
+    top_p: float = Field(ge=0.0)
+    top_k: int = Field(ge=0)
+    context: int = Field(ge=1)
+
+
 class NeuralNetworkConfig(BaseModel):
     backend: str = Field()
-    temperature: float = Field(ge=0.0)
     prompt_template: PromptTemplateType = Field()
-    context: int = Field(ge=1)
     mock: bool = Field()
+    parameters: NeuralNetworkParametersConfig = Field()
 
 
 class AppConfig(BaseModel):
@@ -49,9 +57,14 @@ def load_config(config_file: str) -> AppConfig:
             return AppConfig(
                 neural_network=NeuralNetworkConfig(
                     backend=get_dict_key_by_path(config, 'neural-network.backend'),
-                    temperature=get_dict_key_by_path(config, 'neural-network.temperature'),
+                    parameters=NeuralNetworkParametersConfig(
+                        context=get_dict_key_by_path(config, 'neural-network.parameters.context'),
+                        temperature=get_dict_key_by_path(config, 'neural-network.parameters.temperature'),
+                        repetition_penalty=get_dict_key_by_path(config, 'neural-network.parameters.repetition_penalty'),
+                        top_p=get_dict_key_by_path(config, 'neural-network.parameters.top_p'),
+                        top_k=get_dict_key_by_path(config, 'neural-network.parameters.top_k'),
+                    ),
                     prompt_template=get_dict_key_by_path(config, 'neural-network.prompt-template'),
-                    context=get_dict_key_by_path(config, 'neural-network.context'),
                     mock=get_dict_key_by_path(config, 'neural-network.mock'),
                 )
             )

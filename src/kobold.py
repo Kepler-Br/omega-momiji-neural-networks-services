@@ -1,5 +1,6 @@
 from abc import abstractmethod, ABC
-from typing import List
+from typing import List, final
+from weakref import finalize
 
 import aiohttp
 from pydantic import BaseModel, Field
@@ -12,6 +13,9 @@ class GenerationInput(BaseModel):
     prompt: str = Field()
     stop_sequence: List[str] = Field()
     temperature: float = Field()
+    rep_pen: float = Field()
+    top_k: int = Field()
+    top_p: float = Field()
 
 
 class GenerationResult(BaseModel):
@@ -31,6 +35,9 @@ class KoboldClient(ABC):
                        prompt: str,
                        stop_sequence: List[str],
                        temperature: float,
+                       repetition_penalty: float,
+                       top_p: float,
+                       top_k: int,
                        ) -> GenerationOutput:
         pass
 
@@ -42,11 +49,15 @@ class MockKoboldClient(KoboldClient):
                        prompt: str,
                        stop_sequence: List[str],
                        temperature: float,
+                       repetition_penalty: float,
+                       top_p: float,
+                       top_k: int,
                        ) -> GenerationOutput:
         return GenerationOutput(
             results=[
                 GenerationResult(
-                    text='This is a mock'
+                    text='This is a mock',
+                    finish_reason='length'
                 )
             ]
         )
@@ -64,6 +75,9 @@ class AsyncKoboldClient(KoboldClient):
                        prompt: str,
                        stop_sequence: List[str],
                        temperature: float,
+                       repetition_penalty: float,
+                       top_p: float,
+                       top_k: int,
                        ) -> GenerationOutput:
         async with aiohttp.ClientSession() as session:
             request_body = GenerationInput(
@@ -72,6 +86,9 @@ class AsyncKoboldClient(KoboldClient):
                 prompt=prompt,
                 stop_sequence=stop_sequence,
                 temperature=temperature,
+                rep_pen=repetition_penalty,
+                top_k=top_k,
+                top_p=top_p,
             )
             url = urljoin(self._url, 'api/v1/generate')
 
